@@ -7,7 +7,7 @@ Achtes Stück der Korrelations-Reihe in der „Konzepte“-Reihe für die Websit
 
 ## Warum dieses Problem
 
-Eine Prognose mit r = 0,99 kann um 30 % zu hoch liegen. Befunde (Ist ~ N(100, 20²)): die Prognose **1,3 · Ist** hat das **beste r** der Tabelle (**0,988**, R² 0,977) und den **schlechtesten RMSE** (**30,85**), Lins CCC ist **0,522**, und keine einzige Woche liegt innerhalb ±5 (0,0 %; innerhalb ±10 0,3 %); ein konstanter Bias von +10 lässt r bei 0,981 und senkt die CCC auf 0,873; die lineare Neukalibrierung macht aus RMSE 30,86 einen RMSE von 3,06, nur Rauschen lässt sich nicht herauskalibrieren (CCC 0,661 → 0,658); **dieselbe Prognose** (RMSE 4,00, innerhalb ±5 78,8 %) hat ein R² von 0,611 oder 0,990, je nachdem, wie stark das Ist streut; und von zwei Prognosen wählt r in **100 %** der Läufe die mit dem dreifachen Fehler, während CCC, RMSE und MAE in 100 % die andere wählen.
+Eine Prognose mit r = 0,99 kann um 30 % zu hoch liegen. Befunde (Ist ~ N(100, 20²)): die Prognose **1,3 · Ist** hat das **beste r** der Tabelle (**0,988**, R² 0,977) und den **schlechtesten RMSE** (**30,85**), Lins CCC ist **0,522**, und praktisch keine Woche liegt innerhalb ±5 (0,03 %; innerhalb ±10 0,3 %); ein konstanter Bias von +10 lässt r bei 0,981 und senkt die CCC auf 0,873; die lineare Neukalibrierung macht aus RMSE 30,86 einen RMSE von 3,06, nur Rauschen lässt sich nicht herauskalibrieren (CCC 0,661 → 0,658); **dieselbe Prognose** (RMSE 4,00, innerhalb ±5 78,8 %) hat ein R² von 0,611 oder 0,990, je nachdem, wie stark das Ist streut; und von zwei Prognosen wählt r in **100 %** der Läufe die mit gut dreifachem RMSE (beim MAE 3,8-fach), während CCC, RMSE und MAE in 100 % die andere wählen.
 
 ## Befunde und Korrekturen gegenüber dem Plan
 
@@ -27,7 +27,7 @@ Das Ist a ist normalverteilt mit Mittel 100 und Streuung σ_a. Die Prognose ist 
 - **Maße der Hauptansicht** (`ueb_evaluation.py`): Pearson r und R², **Lins CCC** = 2 Cov(f, a) / (Var f + Var a + (f̄ − ā)²) (Varianzen durch n), mittlere Abweichung, RMSE, MAE, Anteil innerhalb ±T (inklusive Grenze), die CCC nach Neukalibrierung; dazu das **Bland–Altman-Diagramm** mit mittlerer Abweichung, 95-%-Grenzen (± 1,96 Standardabweichungen mit Teiler n − 1), Steigung der Differenzen gegen das Mittel und Anteil außerhalb insgesamt sowie im unteren und oberen Drittel des Ist. **Neukalibrierung:** Regression des Ist auf die Prognose. **ICC(A,1)** (zweifaktoriell, absolute Übereinstimmung) nur als Gegenprobe.
 - **Exakte Formeln** (Erwartung als Verhältnis der Erwartungswerte): Cov = Steigung · σ_a², Var f = Steigung² σ_a² + Rauschvarianz, CCC = 2 Cov / (Var f + σ_a² + Bias²), RMSE² = Bias² + (Steigung − 1)² σ_a² + Rauschvarianz; der Anteil innerhalb ±T und das MAE exakt aus der Normalverteilung der Differenzen, bei proportionalem Rauschen durch Gauß–Hermite-Integration über das Ist.
 - **Experimente:** (1) sechs Fehlerarten (n = 2 000) und die Streuung der Maße gegen n, (2) gleicher Fehler bei verschiedener Streuung des Ist, (3) Neukalibrierung an der ersten und Bewertung an der zweiten Hälfte, (4) zwei Prognosen gegen dieselben Ist-Werte, (5) Bland–Altman bei additivem, proportionalem und steigungsbedingtem Fehler.
-- **Vorgerechnetes Raster** (`tools/make_grid.py`, `data/agreement_grid.json`, 1 s auf 10 Prozessen): E1 6 Fehlerarten · 400 Läufe, Streuung 3 Fehlerarten · 4 Wochenzahlen · 1000 Läufe, E2 4 Streuungen · 2 Bias · 400 Läufe, E3 5 Fehlerarten (und 2 Wochenzahlen) · 800 Läufe, E4 1000 Läufe, E5 3 Fehlerarten · 400 Läufe; feste Seeds.
+- **Vorgerechnetes Raster** (`tools/make_grid.py`, `data/agreement_grid.json`, 1 s auf 10 Prozessen bei der Erzeugung, rechnerabhängig): E1 6 Fehlerarten · 400 Läufe, Streuung 3 Fehlerarten · 4 Wochenzahlen · 1000 Läufe, E2 4 Streuungen · 2 Bias · 400 Läufe, E3 5 Fehlerarten (und 2 Wochenzahlen) · 800 Läufe, E4 1000 Läufe, E5 3 Fehlerarten · 400 Läufe; feste Seeds.
 
 ## Befunde (gemessen, keine Behauptungen)
 
@@ -112,16 +112,16 @@ Alle Zahlen stehen in `tests/test_claims.py` (Raster-Werte gegen die JSON-Datei,
 
 Befunde in Worten:
 
-- **r und R² sehen weder Bias noch Skala.** Die falsche Skala hat das beste r (0,988) und den schlechtesten RMSE (30,85); der Bias +10 lässt r bei 0,981 und senkt die CCC von 0,980 (perfekt) auf 0,873. Nur Rauschen wirkt auf r und CCC fast gleich (0,707 gegen 0,666): dort ist r nicht blind. Alle Werte sind exakt vorhersagbar.
-- **Bias und Skala lassen sich wegrechnen, Rauschen nicht.** Nach der Neukalibrierung steigt die CCC der falschen Skala von 0,518 auf 0,988 (r 0,988) und der RMSE fällt von 30,86 auf 3,06; bei „nur Rauschen“ bleibt die CCC bei 0,661 → 0,658 (der RMSE fällt trotzdem von 20,02 auf 14,20, weil die Regression zur Mitte schrumpft). Schon mit 15 Trainingswochen erreicht die falsche Skala eine CCC von 0,983 (r 0,987).
-- **Die CCC streut bei Bias oder falscher Skala deutlich stärker als r** (falsche Skala bei n = 20: 0,079 gegen 0,005, bei n = 1 000 0,012; Bias +10 bei n = 30: 0,036 gegen 0,008) und ist bei kleinem n nach unten verzerrt (Mittel 0,500 bei n = 20). **ICC(A,1)** liegt bis auf 0,0125 (n = 20), 0,0025 (n = 100) und 0,0002 (n = 1 000) bei der CCC: für zwei Messreihen ist es dasselbe Maß bis auf 1/n.
-- **Dieselbe Prognose, ein ganz anderes r:** bei gleichem RMSE (4,00) und gleichem Anteil innerhalb ±5 (78,8 %) ist R² 0,611 bei einer Streuung des Ist von 5 und 0,990 bei 40. **r und CCC messen den Fehler relativ zur Streuung des Ist; RMSE und Toleranzanteil messen ihn absolut.** Mit Bias +4 sind es RMSE 5,66 und 58,5 %.
+- **r und R² sehen weder Bias noch Skala.** Die falsche Skala hat das beste r (0,988) und den schlechtesten RMSE (30,85); der Bias +10 lässt r bei 0,981 und senkt die CCC von 0,980 (perfekt) auf 0,873. Nur Rauschen wirkt auf r und CCC fast gleich (0,707 gegen 0,666): dort ist r nicht blind. Alle Mittelwerte sind exakt vorhersagbar.
+- **Bias und Skala lassen sich wegrechnen, Rauschen nicht.** Nach der Neukalibrierung steigt die CCC der falschen Skala von 0,518 auf 0,988 (r 0,988) und der RMSE fällt von 30,86 auf 3,06; bei „nur Rauschen“ bleibt die CCC bei 0,661 → 0,658 (der RMSE fällt trotzdem von 20,02 auf 14,20, weil die Regression zur Mitte schrumpft). Schon mit 15 Trainingswochen erreicht die falsche Skala im Mittel eine CCC von 0,983 (r 0,987; schlechtester von 1 500 Läufen 0,90), solange die Beziehung gleich bleibt.
+- **Die CCC streut bei Bias oder falscher Skala deutlich stärker als r** (falsche Skala bei n = 20: 0,079 gegen 0,005, bei n = 1 000 0,012; Bias +10 bei n = 30: 0,036 gegen 0,008) und ist bei kleinem n nach unten verzerrt (Mittel 0,500 bei n = 20). **ICC(A,1)** liegt bis auf 0,0125 (n = 20), 0,0025 (n = 100) und 0,0002 (n = 1 000) bei der CCC: für zwei Messreihen ist es dasselbe Maß bis auf einen Abstand der Größenordnung 1/n.
+- **Dieselbe Prognose, ein ganz anderes r:** bei gleichem RMSE (4,00) und gleichem Anteil innerhalb ±5 (78,8 %) ist R² 0,611 bei einer Streuung des Ist von 5 und 0,990 bei 40. **r und CCC messen den Fehler relativ zur Streuung des Ist; RMSE und Toleranzanteil messen ihn absolut, wenn der Fehler nicht von der Streuung des Ist abhängt** (Steigung 1, additives Rauschen); bei einem Steigungsfehler hängen auch sie daran (Skala 1,3: RMSE 30,30 / 30,85 / 32,56 bei einer Streuung des Ist von 5 / 20 / 40). Mit Bias +4 sind es RMSE 5,66 und 58,5 %.
 - **Die Rangfolge hängt am Maß:** Prognose A (r 0,988, CCC 0,520, RMSE 30,86) gegen B (r 0,894, CCC 0,888, RMSE 9,99): r wählt A in 100 %, CCC, RMSE und MAE wählen B in 100 % der 1000 Läufe.
-- **Ein Paar Bland–Altman-Grenzen passt nur bei gleichbleibendem Fehler:** bei proportionalem Rauschen liegen insgesamt 5,4 % außerhalb, im unteren Drittel 1,3 %, im oberen 10,1 %; eine Steigung ungleich 1 zeigt sich als Steigung der Differenzen gegen das Mittel (0,274, Ausreißer in beiden Dritteln, unten 7,4 %). Ob ein Fehler tolerierbar ist, sagt das Diagramm nicht: das tut der Anteil innerhalb ±T.
+- **Ein Paar Bland–Altman-Grenzen passt nur bei gleichbleibendem Fehler:** bei proportionalem Rauschen liegen insgesamt 5,4 % außerhalb, im unteren Drittel 1,3 %, im oberen 10,1 %; eine Steigung ungleich 1 zeigt sich als Steigung der Differenzen gegen das Mittel (0,274, Ausreißer in beiden Dritteln, unten 7,4 %). Eine Steigung der Differenzen entsteht auch bei Steigung 1 allein durch großes additives Rauschen (Regression zur Mitte: 0,077 bei Rauschen 8, 0,40 bei Rauschen 20). Ob ein Fehler tolerierbar ist, sagt das Diagramm nicht: das tut der Anteil innerhalb ±T.
 
 ## Ehrliche Grenzen
 
-- **Normalverteiltes Ist und lineare Fehlerstruktur.** Die exakten Formeln gelten für diese Welt; echte Reihen haben Schiefe, Ausreißer und Stufen, die Richtung der Effekte bleibt.
+- **Normalverteiltes Ist und lineare Fehlerstruktur.** Die exakten Formeln gelten für diese Welt; echte Reihen haben Schiefe, Ausreißer und Stufen; ob die Richtung der Effekte bleibt, zeigt die Demo nicht.
 - **Unabhängige Wochen.** Reihen mit Trend und Gedächtnis machen r und CCC trügerisch hoch (Scheinkorrelation, `scheinkorrelation-demo`).
 - **Die Toleranz ist eine Setzung.** Ob ±5 genügt, hängt am Zweck der Prognose, nicht an den Daten.
 - **Punktprognosen.** Intervall- und Wahrscheinlichkeitsprognosen und ihre Kalibrierung sind ein anderes Thema (`forecast-interval-demo`).
@@ -185,7 +185,7 @@ pip install -r requirements-dev.txt
 pytest tests/ -v
 ```
 
-Das Raster entsteht neu mit `python tools/make_grid.py` (1 s auf zehn Prozessen); `tests/test_grid.py` rechnet eine feste Probe nach und schlägt an, wenn Erzeuger oder Statistik das Raster überholt haben.
+Das Raster entsteht neu mit `python tools/make_grid.py` (bei der letzten Erzeugung 1 s auf zehn Prozessen; je nach Rechner anders); `tests/test_grid.py` rechnet eine feste Probe nach und schlägt an, wenn Erzeuger oder Statistik das Raster überholt haben.
 
 Gebaut mit Streamlit, Plotly und NumPy.
 

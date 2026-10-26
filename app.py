@@ -71,7 +71,7 @@ with st.expander("So funktioniert es", expanded=True):
 | **Welt** | Das Ist streut um 100 mit der Standardabweichung σ_a; die Prognose ist 100 + **Bias** + **Steigung** · (Ist − 100) + **Rauschen**. Die Prognose „1,3 · Ist“ hat Bias 30 und Steigung 1,3. |
 | **Pearson r, R²** | Wie eng die Punkte an einer Geraden liegen. Unverändert, wenn man die Prognose verschiebt oder streckt. |
 | **Lins CCC** | Wie eng die Punkte an der **45°-Linie** liegen (Prognose = Ist): r, vermindert um Bias und Steigung. Gleich 1 nur bei völliger Übereinstimmung. |
-| **RMSE, MAE, mittlere Abweichung** | Absolute Fehlermaße in den Einheiten des Ist; sie hängen nicht an der Streuung des Ist. |
+| **RMSE, MAE, mittlere Abweichung** | Absolute Fehlermaße in den Einheiten des Ist; sie hängen nicht an der Streuung des Ist, solange die Steigung 1 ist und das Rauschen additiv. |
 | **Anteil innerhalb ±T** | Anteil der Wochen, in denen die Prognose höchstens T daneben liegt: die Toleranz ist eine Setzung. |
 | **Bland–Altman** | Differenz (Prognose − Ist) gegen das Mittel beider; mittlere Abweichung und 95-%-Grenzen (± 1,96 Standardabweichungen). |
 | **Neukalibrierung** | Lineare Anpassung des Ist an die Prognose; sie behebt Bias und Skala, aber kein Rauschen. |
@@ -177,7 +177,7 @@ if grid is not None:
     e2_bias = st.selectbox("Bias für das Verdikt", list(C.E2_BIASES), key="e2_bias")
     kind, text = ev.verdict_e2(grid["e2"], e2_bias)
     getattr(st, kind)(text)
-    st.caption("r, R² und CCC messen den Fehler **relativ** zur Streuung des Ist; RMSE und Toleranzanteil messen ihn **absolut**. Wer eine Prognose an R² misst, misst auch, wie bunt das Ist ist "
+    st.caption("r, R² und CCC messen den Fehler **relativ** zur Streuung des Ist; RMSE und Toleranzanteil messen ihn **absolut**, wenn der Fehler nicht von der Streuung des Ist abhängt (Steigung 1, additives Rauschen). Wer eine Prognose an R² misst, misst auch, wie bunt das Ist ist "
                "(vgl. die Bereichseinschränkung in `aggregationsebene-demo`).")
 
 st.markdown("---")
@@ -195,8 +195,8 @@ if grid is not None:
     small = sorted(grid["e3_small"] + [c for c in grid["e3"] if c["case"] == "skala"], key=lambda c: c["n"])
     st.markdown("**Wie viele Wochen braucht die Kalibrierung?** Skala 1,3, Training an der ersten Hälfte:")
     st.dataframe([{"Wochen insgesamt": c["n"], "Trainingswochen": c["n"] // 2, "CCC vorher": de(c["ccc_before"], 3), "CCC nachher": de(c["ccc_after"], 3), "r": de(c["r"], 3)} for c in small], hide_index=True, width="stretch")
-    st.caption("Bias und Skala lassen sich wegrechnen (CCC nähert sich r, der RMSE fällt auf das Rauschen); Rauschen nicht: die CCC bleibt bei „nur Rauschen“ fast gleich. Wer r = 0,99 hat, hat eine gut "
-               "kalibrierbare Prognose, aber noch keine gute.")
+    st.caption("Bias und Skala lassen sich wegrechnen (CCC nähert sich r, der RMSE fällt auf den Rest, der nicht an der Prognose hängt, bei flacher Steigung über das Rauschen); Rauschen nicht: die CCC bleibt bei „nur Rauschen“ fast gleich. "
+               "Wer r = 0,99 hat, hat bei gleichbleibender linearer Beziehung eine gut kalibrierbare Prognose, aber noch keine gute.")
 
 st.markdown("---")
 
@@ -211,7 +211,7 @@ if grid is not None:
                  hide_index=True, width="stretch")
     kind, text = ev.verdict_e4(cell)
     getattr(st, kind)(text)
-    st.caption("Wer Prognosen nach r wählt, nimmt hier die mit dem dreifachen Fehler: die Rangfolge hängt vollständig am Maß, nicht an den Daten.")
+    st.caption("Wer Prognosen nach r wählt, nimmt hier die mit gut dreifachem RMSE: die Rangfolge hängt hier am Maß.")
 
 st.markdown("---")
 
@@ -226,7 +226,7 @@ if grid is not None:
     kind, text = ev.verdict_e5(ev.find(grid["e5"], case=e5_case))
     getattr(st, kind)(text)
     st.caption("Ein Paar Grenzen passt nur bei gleichbleibendem Fehler: wächst der Fehler mit dem Ist, liegen im oberen Drittel doppelt so viele Wochen außerhalb. Eine Steigung ungleich 1 zeigt sich als Steigung der "
-               "Differenzen gegen das Mittel. Ob ein Fehler tolerierbar ist, sagt das Diagramm nicht: das tut der Anteil innerhalb ±T.")
+               "Differenzen gegen das Mittel; bei großem additivem Rauschen entsteht sie auch allein durch Regression zur Mitte. Ob ein Fehler tolerierbar ist, sagt das Diagramm nicht: das tut der Anteil innerhalb ±T.")
 
 st.markdown("---")
 
@@ -237,7 +237,7 @@ st.markdown(
     r"""
 | Annahme | Was passiert, wenn sie verletzt ist | Wer setzt an |
 |---|---|---|
-| **Normalverteiltes Ist, lineare Fehlerstruktur** | die exakten Formeln gelten für diese Welt; echte Reihen haben Schiefe, Ausreißer und Stufen, die Richtung der Effekte bleibt | – |
+| **Normalverteiltes Ist, lineare Fehlerstruktur** | die exakten Formeln gelten für diese Welt; echte Reihen haben Schiefe, Ausreißer und Stufen; ob die Richtung der Effekte bleibt, zeigt die Demo nicht | – |
 | **Unabhängige Wochen** | Reihen mit Trend und Gedächtnis machen r und CCC trügerisch hoch (Scheinkorrelation) | `scheinkorrelation-demo` |
 | **Die Toleranz ist eine Setzung** | ob ±5 genügt, hängt am Zweck der Prognose, nicht an den Daten | – |
 | **Punktprognosen** | Intervall- und Wahrscheinlichkeitsprognosen und ihre Kalibrierung sind ein anderes Thema | `forecast-interval-demo` |

@@ -242,7 +242,7 @@ def verdict_ba(a: Analysis):
     if s.n < 60:
         return "info", base + f" Bei n = {s.n} sind die Drittel zu klein für eine Aussage über die Form des Fehlers."
     if abs(ba["slope"]) >= 0.15:
-        return "warning", base + " Die Differenzen hängen am Mittel: die Prognose hat eine Steigung ungleich 1 (oder einen proportionalen Fehler), ein Paar Grenzen passt nicht für alle Größen."
+        return "warning", base + " Die Differenzen hängen am Mittel: das kann eine Steigung ungleich 1 oder ein proportionaler Fehler sein, bei großem additivem Rauschen aber auch allein die Regression zur Mitte; ein Paar Grenzen passt dann nicht für alle Größen."
     if ba["outside_high"] - ba["outside_low"] >= 0.04 - 1e-9:
         return "warning", base + " Der Fehler wächst mit dem Ist: für große Werte sind die Grenzen zu eng, für kleine zu weit."
     return "info", base
@@ -251,7 +251,7 @@ def verdict_ba(a: Analysis):
 def verdict_tolerance(a: Analysis):
     s = a.settings
     r = a.row("within")
-    return "info", f"Innerhalb von ±{s.tol:g} liegen **{pct(r.value)}** der Wochen (erwartet {pct(r.exact)}). Das ist ein absolutes Maß: es hängt nicht an der Streuung des Ist."
+    return "info", f"Innerhalb von ±{s.tol:g} liegen **{pct(r.value)}** der Wochen (erwartet {pct(r.exact)}). Das ist ein absolutes Maß: bei Steigung 1 und additivem Rauschen hängt es nicht an der Streuung des Ist."
 
 
 # --- Verdikte der Experimente (aus dem Raster) --------------------------------------------------------------------------------------------------
