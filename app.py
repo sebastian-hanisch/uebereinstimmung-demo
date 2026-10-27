@@ -58,10 +58,23 @@ st.markdown(
 sehen nur, wie gut eine **Gerade** passt, nicht, ob die Werte **gleich** sind: eine Prognose mit r = 0,99 kann um 30 % zu hoch liegen. Die Fragen: **Wann verrät r nichts über Bias und Skala? Was sagt Lins
 Übereinstimmungskorrelation (CCC)? Was lässt sich durch Neukalibrieren beheben und was nicht? Und kehrt sich die Rangfolge zweier Prognosen je nach Maß um?**
 
-Weiter unten: fünf Experimente (**🔬**), **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**. Prognose-Verfahren und ihr Vergleich (MAE, RMSE, MASE) stehen in der Prognose-Linie
+Wer die Idee zuerst ohne Fachbegriffe verstehen will, öffnet **💬 In einfachen Worten**. Weiter unten: fünf Experimente (**🔬**), **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**. Prognose-Verfahren und ihr Vergleich (MAE, RMSE, MASE) stehen in der Prognose-Linie
 (`naive-forecast-demo`, `forecast-combination-demo`); hier geht es um das **Verhältnis von Zusammenhang und Übereinstimmung** zweier Reihen.
 """
 )
+
+# erklaerseite:einfach:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/uebereinstimmung-erklaert.json, nicht von Hand ändern)
+with st.expander("💬 In einfachen Worten"):
+    st.markdown(
+        """
+Eine Prognose kann im Diagramm genau im Gleichschritt mit den tatsächlichen Werten laufen und trotzdem durchgehend zu hoch liegen. Das gängige Maß für den Gleichschritt, die **Korrelation**, merkt davon nichts: Verschiebt oder streckt man die Prognose, bleibt es gleich. Die **Übereinstimmung** fragt dagegen, ob Prognose und Ist dieselben Werte haben.
+
+Die Demo legt eine Prognose gegen das Ist und lässt **Bias** (Verschiebung), **Steigung** (Streckung) und **Rauschen** einstellen. Sie zeigt, welche Maße welchen Fehler sehen, was sich durch Umrechnen (**Neukalibrieren**) beheben lässt und was nicht, und dass zwei Prognosen ihre Rangfolge tauschen können, je nachdem, mit welchem Maß man sie vergleicht. Alle Daten sind simuliert.
+
+[Ausführlich und verständlich erklärt, mit Fachteil](https://sebastianhanisch.net/uebereinstimmung-erklaert.html)
+        """
+    )
+# erklaerseite:einfach:end
 
 with st.expander("So funktioniert es", expanded=True):
     st.markdown(
@@ -251,19 +264,38 @@ st.caption("Alle Daten sind simuliert; die Welt ist eine Modellwahl, kein Befund
 st.markdown("---")
 
 with st.expander("📐 Mathematische Formulierung"):
+    # erklaerseite:lesehilfe:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/uebereinstimmung-erklaert.json, nicht von Hand ändern)
     st.markdown(
         r"""
-**Lesehilfe.** Das Ist $a$ ist normalverteilt mit Mittel $\mu = 100$ und Varianz $\sigma_a^2$; die Prognose ist
+**Lesehilfe.** Gegeben sind $n$ Wochen mit dem Ist $a$ und einer Prognose $f$ je Woche; das Ist ist normalverteilt, die Prognose entsteht aus ihm durch Bias, Steigung und Rauschen. Gesucht ist, welche Maße (Pearson-$r$, Lins $\rho_c$, Fehlermaße) welchen Fehler sehen.
+
+| Symbol | Bedeutung |
+|---|---|
+| $a$, $f$ | Ist-Wert und Prognose einer Woche |
+| $\mu$, $\sigma_a$ | Mittel und Streuung des Ist (Varianz $\sigma_a^2$) |
+| $b$, $s$ | Bias (Verschiebung der Prognose) und Steigung (Streckung um $\mu$); die Prognose „1,3 · Ist“ hat $b = 30$ und $s = 1{,}3$ |
+| $\varepsilon$, $\sigma_e$ | Rauschen (additiv oder proportional zum Ist) und seine Standardabweichung |
+| $\sigma_f^2$, $\sigma_{fa}$ | Varianz der Prognose und Kovarianz von Prognose und Ist |
+| $\bar f$, $\bar a$ | Mittelwerte von Prognose und Ist |
+| $r$ | Pearson-Korrelation: wie eng die Punkte an einer Geraden liegen |
+| $\rho_c$ | Lins Übereinstimmungskorrelation (CCC): wie eng die Punkte an der Linie Prognose = Ist liegen |
+| $d = f - a$ | Differenz (Fehler) einer Woche; $\operatorname{Var}(d)$ ist ihre Varianz |
+| $\mathrm{RMSE}$ | Wurzel aus dem Mittel der quadrierten Fehler $d^2$ |
+| $T$ | Toleranz: Eine Woche zählt als innerhalb, wenn $\lvert d \rvert \le T$ |
+| $\Phi$ | Verteilungsfunktion der Standardnormalverteilung |
+| $\hat a$, $\alpha$, $\beta$ | neukalibrierte Prognose $\hat a = \alpha + \beta f$ (Regression des Ist auf die Prognose) |
+
+[Schritt für Schritt erklärt, mit Herleitung und Literatur](https://sebastianhanisch.net/uebereinstimmung-erklaert.html#fachleute)
+        """
+    )
+    # erklaerseite:lesehilfe:end
+    st.markdown(
+        r"""
+**Modell.** Das Ist $a$ ist normalverteilt mit Mittel $\mu = 100$ und Varianz $\sigma_a^2$; die Prognose ist
 
 $$ f = \mu + b + s\,(a-\mu) + \varepsilon, \qquad \varepsilon \sim N(0,\sigma_e^2)\ \text{(additiv)} \ \text{oder}\ \varepsilon \sim N\big(0,\sigma_e^2 a^2/\mu^2\big)\ \text{(proportional)} $$
 
 mit dem Bias $b$ und der Steigung $s$.
-
-| Symbol | Bedeutung |
-|---|---|
-| $\sigma_f^2, \sigma_{fa}$ | Varianz der Prognose und Kovarianz von Prognose und Ist |
-| $d = f - a$ | Differenz (Fehler) |
-| $T$ | Toleranz |
 
 **Pearson r** und **Lins Übereinstimmungskorrelation** (Varianzen durch $n$):
 

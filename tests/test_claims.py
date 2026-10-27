@@ -157,6 +157,38 @@ def test_claim_the_headline_findings_hold_in_the_grid(grid):
     assert prop["outside_high"] > 5 * prop["outside_low"] and cell(grid, "e5", case="additiv")["outside_low"] == pytest.approx(0.05, abs=0.005)
 
 
+def test_claim_ba_slope_from_regression_to_the_mean_with_slope_one():
+    """Befund „Regression zur Mitte“: bei Steigung 1 und additivem Rauschen ist die Steigung der Differenzen gegen das Mittel erwartet σe² / 2 / (σa² + σe² / 4); Messung über die Läufe des Rasters (4 Seeds · 100 Läufe, n = 2 000)."""
+    import numpy as np
+    for sigma_e, expected, mean_txt, sd_txt in ((8, 0.0769, "0,078", "0,009"), (20, 0.4, "0,402", "0,019")):
+        assert sigma_e ** 2 / 2 / (C.DEFAULT_SIGMA_A ** 2 + sigma_e ** 2 / 4) == pytest.approx(expected, abs=5e-5)
+        case = {"bias": 0, "slope": 1.0, "sigma_e": sigma_e, "noise": "additiv"}
+        slopes = np.array([K.bland_altman(f, a)["slope"] for f, a in ev._worlds(case, C.DEFAULT_SIGMA_A, C.E5_N, C.E5_RUNS, C.GRID_SEEDS)])
+        assert len(slopes) == 400
+        assert _c(slopes.mean(), 3) == mean_txt and _c(slopes.std(), 3) == sd_txt
+    assert "erwartet 0,077 bei Rauschen 8 und 0,40 bei Rauschen 20" in README
+    assert "gemessen im Mittel über 400 Läufe 0,078 und 0,402, die Läufe streuen dabei mit 0,009 und 0,019" in README
+
+
+def test_claim_recalibration_with_15_training_weeks_worst_run():
+    """Befund „Schon mit 15 Trainingswochen“: Mittel 0,983 (r 0,987) und schlechtester von 800 Läufen 0,82 (n = 30, 4 Seeds · 200 Läufe)."""
+    import numpy as np
+    rows = []
+    for f, a in ev._worlds(C.CASES["skala"], C.DEFAULT_SIGMA_A, 30, C.E3_RUNS, C.GRID_SEEDS):
+        slope, icpt = K.recalibrate(f[:15], a[:15])
+        rows.append((K.ccc(K.apply_calibration(f[15:], slope, icpt), a[15:]), K.corr(f[15:], a[15:])))
+    rows = np.array(rows)
+    assert len(rows) == 800
+    assert _c(rows[:, 0].mean(), 3) == "0,983" and _c(rows[:, 1].mean(), 3) == "0,987" and _c(rows[:, 0].min(), 2) == "0,82"
+    assert "schlechtester von 800 Läufen 0,82" in README and "1 500" not in README
+
+
+def test_claim_within5_of_the_wrong_scale_is_zero_in_the_sample():
+    sk = cell(ev.load_grid(), "e1", case="skala")
+    assert _p(sk["within5"]) == "0,0 %" and _p(sk["within10"]) == "0,3 %"
+    assert "(0,0 % in der Stichprobe; innerhalb ±10 0,3 %)" in README and "0,03 %" not in README
+
+
 # --- Texte der Presets ---------------------------------------------------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
